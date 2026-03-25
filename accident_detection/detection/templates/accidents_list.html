@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Accidents - Accident Detection System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="bi bi-exclamation-triangle"></i> All Detected Accidents
+        </h1>
+    </div>
+</div>
+
+<!-- Filter Form -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h6 class="mb-0">
+            <i class="bi bi-funnel"></i> Filter Accidents
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Location</label>
+                {{ form.location }}
+            </div>
+            <!-- <div class="col-md-3">
+                <label class="form-label">Min Confidence (%)</label>
+                {{ form.min_confidence }}
+            </div> -->
+            <div class="col-md-2">
+                <label class="form-label">From Date</label>
+                {{ form.date_from }}
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">To Date</label>
+                {{ form.date_to }}
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results Info -->
+<div class="alert alert-info">
+    Total Records Found: <strong>{{ total_count }}</strong>
+</div>
+
+<!-- Accidents Table -->
+{% if accidents %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Timestamp</th>
+                    <th>Location</th>
+                    <th>Video ID</th>
+                    <!-- <th>Confidence</th> -->
+                    <th>Vehicles</th>
+                    <th>Confirmed</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for accident in accidents %}
+                    <tr>
+                        <td><strong>#{{ accident.id }}</strong></td>
+                        <td>{{ accident.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ accident.location }}</td>
+                        <td><code>{{ accident.video_id }}</code></td>
+                        <!-- <td>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-{% if accident.confidence_score >= 80 %}danger{% elif accident.confidence_score >= 60 %}warning{% else %}info{% endif %} me-2">
+                                    {{ accident.get_confidence_percentage }}
+                                </span>
+                                <div class="progress" style="width: 100px; height: 5px;">
+                                    <div class="progress-bar bg-danger" role="progressbar" 
+                                         style="width: {{ accident.confidence_score }}%"></div>
+                                </div>
+                            </div>
+                        </td> -->
+                        <td>
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-car-front"></i> {{ accident.vehicle_count }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if accident.is_confirmed %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Yes
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-question-circle"></i> No
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'detection:accident_detail' accident.id %}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if accidents.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if accidents.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ accidents.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">Page {{ accidents.number }} of {{ accidents.paginator.num_pages }}</span>
+                </li>
+
+                {% if accidents.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ accidents.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ accidents.paginator.num_pages }}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+{% else %}
+    <div class="alert alert-warning">
+        <i class="bi bi-info-circle"></i>
+        No accidents match your filter criteria.
+    </div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Accident Detection System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </h1>
+    </div>
+</div>
+
+{% if toast_message %}
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+    <div id="accidentToast" class="toast align-items-center text-bg-danger border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                {{ toast_message }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toastEl = document.getElementById('accidentToast');
+        if (toastEl) {
+            const toast = new bootstrap.Toast(toastEl, { delay: 7000 });
+            toast.show();
+        }
+    });
+</script>
+{% endif %}
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-white-50 mb-0">Total Accidents</h6>
+                        <h2 class="mb-0">{{ total_accidents }}</h2>
+                    </div>
+                    <i class="bi bi-exclamation-circle" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-white-50 mb-0">Confirmed</h6>
+                        <h2 class="mb-0">{{ confirmed_accidents }}</h2>
+                    </div>
+                    <i class="bi bi-check-circle" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-white-50 mb-0">Detection Rate</h6>
+                        <h2 class="mb-0">{{ detection_rate }}%</h2>
+                    </div>
+                    <i class="bi bi-graph-up" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h5 class="mb-3">Quick Actions</h5>
+        <a href="{% url 'detection:upload_video' %}" class="btn btn-primary btn-lg">
+            <i class="bi bi-upload"></i> Upload New Video
+        </a>
+        <a href="{% url 'detection:accidents_list' %}" class="btn btn-info btn-lg">
+            <i class="bi bi-list"></i> View All Accidents
+        </a>
+        <a href="{% url 'detection:statistics' %}" class="btn btn-warning btn-lg">
+            <i class="bi bi-bar-chart"></i> View Statistics
+        </a>
+    </div>
+</div>
+
+<!-- Recent Accidents -->
+<div class="row">
+    <div class="col-md-12">
+        <h5 class="mb-3">Recent Detected Accidents</h5>
+        
+        {% if recent_accidents %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Time</th>
+                            <th>Location</th>
+                            <!-- <th>Confidence</th> -->
+                            <th>Vehicles</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for accident in recent_accidents %}
+                            <tr>
+                                <td><strong>#{{ accident.id }}</strong></td>
+                                <td>{{ accident.timestamp|date:"Y-m-d H:i" }}</td>
+                                <td>{{ accident.location }}</td>
+                                <!-- <td>
+                                    <!-- <span class="badge bg-{% if accident.confidence_score >= 80 %}danger{% elif accident.confidence_score >= 60 %}warning{% else %}info{% endif %}">
+                                        {{ accident.get_confidence_percentage }}
+                                    </span>
+                                     -->
+                                <!-- </td> -->
+                                <td>
+                                    <span class="badge bg-secondary">{{ accident.vehicle_count }}</span>
+                                </td>
+                                <td>
+                                    {% if accident.is_confirmed %}
+                                        <span class="badge bg-success">Confirmed</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Unconfirmed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'detection:accident_detail' accident.id %}" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                No accidents detected yet. <a href="{% url 'detection:upload_video' %}">Upload a video</a> to start analysis.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
